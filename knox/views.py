@@ -1,5 +1,6 @@
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.utils import timezone
+from django.db.models import Count, Q
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,7 +10,8 @@ from rest_framework.views import APIView
 
 from knox.auth import TokenAuthentication
 from knox.models import AuthToken
-from knox.settings import knox_settings
+from knox.settings import CONSTANTS, knox_settings
+from knox.serializers import AuthTokenSerializer 
 
 
 class LoginView(APIView):
@@ -50,21 +52,45 @@ class LoginView(APIView):
         return data
 
     def post(self, request, format=None):
+        queryset = request.user.auth_token_set
+
         token_limit_per_user = self.get_token_limit_per_user()
+        now = timezone.now()
+
+        if request.data.get('will_remove_token') is not None:
+            queryset.filter(Q(expiry__lt=now) | Q(token_key__in=request.data.get('will_remove_token'))).delete()
+        else:
+            queryset.filter(expiry__lt=now).delete()
+            
+
         if token_limit_per_user is not None:
-            now = timezone.now()
-            token = request.user.auth_token_set.filter(expiry__gt=now)
-            if token.count() >= token_limit_per_user:
+            token = AuthTokenSerializer(queryset.filter(expiry__gt=now), many=True).data
+
+            if len(token) >= token_limit_per_user:
                 return Response(
-                    {"error": "Maximum amount of tokens allowed per user exceeded."},
+                    {"token": "Maximum amount of tokens allowed per user exceeded.","data":token},
                     status=status.HTTP_403_FORBIDDEN
                 )
         token_ttl = self.get_token_ttl()
-        instance, token = AuthToken.objects.create(request.user, token_ttl)
+        instance, token = AuthToken.objects.create(request, token_ttl)
         user_logged_in.send(sender=request.user.__class__,
                             request=request, user=request.user)
-        data = self.get_post_response_data(request, token, instance)
-        return Response(data)
+                            
+        if knox_settings.USE_AUTH_COOKIE:
+            response_data = Response(self.get_post_response_data(request, token[:CONSTANTS.TOKEN_KEY_LENGTH], instance))
+            response_data.set_cookie(
+                knox_settings.AUTH_COOKIE_SETTINGS['NAME'],
+                token[CONSTANTS.TOKEN_KEY_LENGTH:],
+                expires=instance.expiry,
+                path=knox_settings.AUTH_COOKIE_SETTINGS['PATH'],
+                domain=knox_settings.AUTH_COOKIE_SETTINGS['DOMAIN'],
+                secure=knox_settings.AUTH_COOKIE_SETTINGS['SECURE'],
+                httponly=knox_settings.AUTH_COOKIE_SETTINGS['HTTP_ONLY'],
+                samesite=knox_settings.AUTH_COOKIE_SETTINGS['SAMESITE']
+            )
+            return response_data
+
+        return Response(self.get_post_response_data(request, token, instance))
 
 
 class LogoutView(APIView):

@@ -12,7 +12,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='django-rest-knox',
+    name='django-rest-knox-nex',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -23,11 +23,11 @@ setup(
     long_description_content_type='text/markdown',
 
     # The project's main homepage.
-    url='https://github.com/James1345/django-rest-knox',
+    url='https://github.com/liradb2000/django-rest-knox',
 
     # Author details
-    author='James McMahon',
-    author_email='james1345@googlemail.com',
+    author='DaBeom Kim',
+    author_email='liradb2000@live.co.kr',
 
     # Choose your license
     license='MIT',
@@ -67,7 +67,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['django', 'djangorestframework', 'cryptography'],
+    install_requires=['django', 'djangorestframework', 'cryptography', 'pyyaml', 'ua-parser', 'user-agents', 'django-user-agents'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,

@@ -49,7 +49,9 @@ class TokenAuthentication(BaseAuthentication):
             msg = _('Invalid token header. '
                     'Token string should not contain spaces.')
             raise exceptions.AuthenticationFailed(msg)
-
+        if knox_settings.USE_AUTH_COOKIE:
+            auth[1] = b''.join([auth[1], request.COOKIES.get(knox_settings.AUTH_COOKIE_SETTINGS['NAME']).encode()])
+        
         user, auth_token = self.authenticate_credentials(auth[1])
         return (user, auth_token)
 
@@ -63,7 +65,7 @@ class TokenAuthentication(BaseAuthentication):
         msg = _('Invalid token.')
         token = token.decode("utf-8")
         for auth_token in AuthToken.objects.filter(
-                token_key=token[:CONSTANTS.TOKEN_KEY_LENGTH]):
+                token_key=token[:CONSTANTS.TOKEN_KEY_LENGTH]).select_related('user__organization'):
             if self._cleanup_token(auth_token):
                 continue
 
@@ -96,13 +98,13 @@ class TokenAuthentication(BaseAuthentication):
         return knox_settings.AUTH_HEADER_PREFIX
 
     def _cleanup_token(self, auth_token):
-        for other_token in auth_token.user.auth_token_set.all():
-            if other_token.digest != auth_token.digest and other_token.expiry:
-                if other_token.expiry < timezone.now():
-                    other_token.delete()
-                    username = other_token.user.get_username()
-                    token_expired.send(sender=self.__class__,
-                                       username=username, source="other_token")
+#        for other_token in auth_token.user.auth_token_set.all():
+#            if other_token.digest != auth_token.digest and other_token.expiry:
+#                if other_token.expiry < timezone.now():
+#                    other_token.delete()
+#                    username = other_token.user.get_username()
+#                    token_expired.send(sender=self.__class__,
+#                                       username=username, source="other_token")
         if auth_token.expiry is not None:
             if auth_token.expiry < timezone.now():
                 username = auth_token.user.get_username()
