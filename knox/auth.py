@@ -6,7 +6,6 @@ except ImportError:
 
 import binascii
 
-from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions
@@ -18,8 +17,6 @@ from knox.crypto import hash_token
 from knox.models import AuthToken
 from knox.settings import CONSTANTS, knox_settings
 from knox.signals import token_expired
-
-User = get_user_model()
 
 
 class TokenAuthentication(BaseAuthentication):
@@ -40,7 +37,10 @@ class TokenAuthentication(BaseAuthentication):
         auth = get_authorization_header(request).split()
         prefix = knox_settings.AUTH_HEADER_PREFIX.encode()
 
-        if not auth or auth[0].lower() != prefix.lower():
+        if not auth:
+            return None
+        if auth[0].lower() != prefix.lower():
+            # Authorization header is possibly for another backend
             return None
         if len(auth) == 1:
             msg = _('Invalid token header. No credentials provided.')
