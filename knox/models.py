@@ -19,7 +19,7 @@ class AuthTokenManager(models.Manager):
 
         instance = super(AuthTokenManager, self).create(
             token_key=token[:CONSTANTS.TOKEN_KEY_LENGTH], digest=digest,
-            salt=salt, user=request.user, expiry=expiry, device=request.user_agent.os.family, browser=request.user_agent.browser.family)
+            salt=salt, user=request.user, expiry=expiry)
         return instance, token
 
 
