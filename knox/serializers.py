@@ -14,4 +14,4 @@ class UserSerializer(serializers.ModelSerializer):
 class AuthTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuthToken
-        fields = ('created', 'browser', 'device', 'token_key')
+        fields = ('created', 'token_key')

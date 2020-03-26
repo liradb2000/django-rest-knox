@@ -37,8 +37,6 @@ class AuthToken(models.Model):
                              related_name='auth_token_set', on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     expiry = models.DateTimeField(null=True, blank=True)
-    device = models.CharField(max_length=20, null=True, blank=True)
-    browser = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
         return '%s : %s' % (self.digest, self.user)
