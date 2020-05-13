@@ -16,8 +16,8 @@ DEFAULTS = {
     'MIN_REFRESH_INTERVAL': 60,
     'AUTH_HEADER_PREFIX': 'Token',
     'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
-    'USE_AUTH_COOKIE': False,
-    'AUTH_COOKIE_SETTINGS': {
+    'USE_COOKIE': False,
+    'COOKIE_SETTINGS': {
         'NAME': 'partial_token',
         'PATH': '/',
         'DOMAIN': None,
