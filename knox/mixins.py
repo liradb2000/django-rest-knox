@@ -42,21 +42,24 @@ class KnoxLoginMixin():
         return data
 
     def modify_response(self, response, instance):
-        if knox_settings.USE_AUTH_COOKIE:
+        if knox_settings.USE_COOKIE:
             response.set_cookie(
-                knox_settings.AUTH_COOKIE_SETTINGS['NAME'],
+                knox_settings.COOKIE_SETTINGS['NAME'],
                 instance.token[CONSTANTS.TOKEN_KEY_LENGTH:],
                 expires=instance.expiry,
-                path=knox_settings.AUTH_COOKIE_SETTINGS['PATH'],
-                domain=knox_settings.AUTH_COOKIE_SETTINGS['DOMAIN'],
-                secure=knox_settings.AUTH_COOKIE_SETTINGS['SECURE'],
-                httponly=knox_settings.AUTH_COOKIE_SETTINGS['HTTP_ONLY'],
-                samesite=knox_settings.AUTH_COOKIE_SETTINGS['SAMESITE']
+                path=knox_settings.COOKIE_SETTINGS['PATH'],
+                domain=knox_settings.COOKIE_SETTINGS['DOMAIN'],
+                secure=knox_settings.COOKIE_SETTINGS['SECURE'],
+                httponly=knox_settings.COOKIE_SETTINGS['HTTP_ONLY'],
+                samesite=knox_settings.COOKIE_SETTINGS['SAMESITE']
             )
-            return response
+        return response
 
     def create_token(self, user):
         request = self.request
+        if request.user.is_anonymous and user is not None: 
+            request.user=user
+        
         queryset=request.user.auth_token_set
 
         token_limit_per_user = self.get_token_limit_per_user()
@@ -77,7 +80,7 @@ class KnoxLoginMixin():
                     status=status.HTTP_403_FORBIDDEN
                 )
         token_ttl = self.get_token_ttl()
-        instance, iscreate = AuthToken.objects.create(request.user, token_ttl)
+        instance, iscreate = AuthToken.objects.update_or_create(request.user, token_ttl)
         user_logged_in.send(sender=request.user.__class__,
                             request=request, user=request.user)
 
