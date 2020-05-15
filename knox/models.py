@@ -9,18 +9,20 @@ User = settings.AUTH_USER_MODEL
 
 
 class AuthTokenManager(models.Manager):
-    def create(self, user, expiry=knox_settings.TOKEN_TTL):
-        token = crypto.create_token_string()
+    def update_or_create(self, user, expiry=knox_settings.TOKEN_TTL):
+        class instance(object):
+            def __init__(self):
+                setattr(self,"token", crypto.create_token_string())
+                if expiry is not None:
+                    setattr(self, "expiry", timezone.now() + expiry)
+        
+        token_instance = instance()
         salt = crypto.create_salt_string()
-        digest = crypto.hash_token(token, salt)
+        digest = crypto.hash_token(token_instance.token, salt)
 
-        if expiry is not None:
-            expiry = timezone.now() + expiry
+        _, create = super(AuthTokenManager, self).update_or_create(user=user, defaults={"token_key":token_instance.token[:CONSTANTS.TOKEN_KEY_LENGTH], "digest": digest,"salt":salt, "expiry":token_instance.expiry})
 
-        instance = super(AuthTokenManager, self).create(
-            token_key=token[:CONSTANTS.TOKEN_KEY_LENGTH], digest=digest,
-            salt=salt, user=user, expiry=expiry)
-        return instance, token
+        return token_instance, create
 
 
 class AuthToken(models.Model):
