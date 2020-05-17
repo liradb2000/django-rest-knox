@@ -30,7 +30,7 @@ class AuthToken(models.Model):
     objects = AuthTokenManager()
 
     digest = models.CharField(
-        max_length=CONSTANTS.DIGEST_LENGTH, primary_key=True)
+        max_length=CONSTANTS.DIGEST_LENGTH, unique=True)
     token_key = models.CharField(
         max_length=CONSTANTS.TOKEN_KEY_LENGTH, db_index=True)
     salt = models.CharField(

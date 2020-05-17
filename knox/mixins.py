@@ -59,26 +59,28 @@ class KnoxLoginMixin():
         request = self.request
         if request.user.is_anonymous and user is not None: 
             request.user=user
-        
-        queryset=request.user.auth_token_set
 
-        token_limit_per_user = self.get_token_limit_per_user()
-        now = timezone.now()
+        # TODO: Create Multiple token (like: token per login)
+        # queryset=request.user.auth_token_set
 
-        if request.data.get('will_remove_token') is not None:
-            queryset.filter(Q(expiry__lt=now) | Q(token_key__in=request.data.get('will_remove_token'))).delete()
-        else:
-            queryset.filter(expiry__lt=now).delete()
+        # token_limit_per_user = self.get_token_limit_per_user()
+        # now = timezone.now()
+
+        # if request.data.get('will_remove_token') is not None:
+        #     queryset.filter(Q(expiry__lt=now) | Q(token_key__in=request.data.get('will_remove_token'))).delete()
+        # else:
+        #     queryset.filter(expiry__lt=now).delete()
             
 
-        if token_limit_per_user is not None:
-            token = AuthTokenSerializer(queryset.filter(expiry__gt=now), many=True).data
+        # if token_limit_per_user is not None:
+        #     token = AuthTokenSerializer(queryset.filter(expiry__gt=now), many=True).data
 
-            if len(token) >= token_limit_per_user:
-                raise Response(
-                    {"token": "Maximum amount of tokens allowed per user exceeded.","data":token},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+        #     if len(token) >= token_limit_per_user:
+        #         raise Response(
+        #             {"token": "Maximum amount of tokens allowed per user exceeded.","data":token},
+        #             status=status.HTTP_403_FORBIDDEN
+        #         )
+        
         token_ttl = self.get_token_ttl()
         instance, iscreate = AuthToken.objects.update_or_create(request.user, token_ttl)
         user_logged_in.send(sender=request.user.__class__,
