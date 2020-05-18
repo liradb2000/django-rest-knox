@@ -21,7 +21,7 @@ class LoginView(APIView, KnoxLoginMixin):
     def post(self, request, format=None):
         instance, _=self.create_token(request.user)
                             
-        if knox_settings.USE_AUTH_COOKIE:
+        if knox_settings.USE_COOKIE:
             response_data = Response(self.get_post_response_data(request, instance.token[:CONSTANTS.TOKEN_KEY_LENGTH], instance))
             response_data= self.modify_response(response_data, instance)
             return response_data

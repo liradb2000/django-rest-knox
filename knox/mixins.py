@@ -85,7 +85,7 @@ class KnoxLoginMixin():
         instance, iscreate = AuthToken.objects.update_or_create(request.user, token_ttl)
         if knox_settings.USE_COOKIE:
             instance.token = instance.token[:CONSTANTS.TOKEN_KEY_LENGTH]
-        user_logged_in.send(sender=request.user.__class__,
-                            request=request, user=request.user)
+        # user_logged_in.send(sender=request.user.__class__,
+        #                     request=request, user=request.user)
 
         return instance, iscreate

@@ -49,7 +49,7 @@ class TokenAuthentication(BaseAuthentication):
             msg = _('Invalid token header. '
                     'Token string should not contain spaces.')
             raise exceptions.AuthenticationFailed(msg)
-        if knox_settings.USE_AUTH_COOKIE:
+        if knox_settings.USE_COOKIE:
             auth[1] = b''.join([auth[1], request.COOKIES.get(knox_settings.AUTH_COOKIE_SETTINGS['NAME'],'').encode()])
         
         user, auth_token = self.authenticate_credentials(auth[1])
