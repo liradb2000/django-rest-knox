@@ -41,7 +41,7 @@ class KnoxLoginMixin():
             ).data
         return data
 
-    def modify_response(self, response, instance):
+    def knox_modify_response(self, response, instance):
         if knox_settings.USE_COOKIE:
             response.set_cookie(
                 knox_settings.COOKIE_SETTINGS['NAME'],
@@ -53,6 +53,7 @@ class KnoxLoginMixin():
                 httponly=knox_settings.COOKIE_SETTINGS['HTTP_ONLY'],
                 samesite=knox_settings.COOKIE_SETTINGS['SAMESITE']
             )
+            response.data['token'] = instance.token[:CONSTANTS.TOKEN_KEY_LENGTH]
         return response
 
     def create_token(self, user):
@@ -83,8 +84,8 @@ class KnoxLoginMixin():
         
         token_ttl = self.get_token_ttl()
         instance, iscreate = AuthToken.objects.update_or_create(request.user, token_ttl)
-        if knox_settings.USE_COOKIE:
-            instance.token = instance.token[:CONSTANTS.TOKEN_KEY_LENGTH]
+        # if knox_settings.USE_COOKIE:
+        #     instance.token = instance.token[:CONSTANTS.TOKEN_KEY_LENGTH]
         # user_logged_in.send(sender=request.user.__class__,
         #                     request=request, user=request.user)
 
