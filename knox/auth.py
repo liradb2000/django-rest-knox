@@ -50,7 +50,7 @@ class TokenAuthentication(BaseAuthentication):
                     'Token string should not contain spaces.')
             raise exceptions.AuthenticationFailed(msg)
         if knox_settings.USE_COOKIE:
-            auth[1] = b''.join([auth[1], request.COOKIES.get(knox_settings.AUTH_COOKIE_SETTINGS['NAME'],'').encode()])
+            auth[1] = b''.join([auth[1], request.COOKIES.get(knox_settings.COOKIE_SETTINGS['NAME'],'').encode()])
         
         user, auth_token = self.authenticate_credentials(auth[1])
         return (user, auth_token)
