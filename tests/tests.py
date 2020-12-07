@@ -3,11 +3,12 @@ from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import override_settings
-from django.utils.six.moves import reload_module
+from django.urls import reverse
 from freezegun import freeze_time
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.serializers import DateTimeField
 from rest_framework.test import APIRequestFactory, APITestCase as TestCase
+from six.moves import reload_module
 
 from knox import auth, views
 from knox.auth import TokenAuthentication
@@ -15,13 +16,6 @@ from knox.models import AuthToken
 from knox.serializers import UserSerializer
 from knox.settings import CONSTANTS, knox_settings
 from knox.signals import token_expired
-
-try:
-    # For django >= 2.0
-    from django.urls import reverse
-except ImportError:
-    # For django < 2.0
-    from django.conf.urls import reverse
 
 User = get_user_model()
 root_url = reverse('api-root')
@@ -281,7 +275,7 @@ class AuthTestCase(TestCase):
             response = self.client.get(root_url, {}, format='json')
             self.assertEqual(response.status_code, 401)
 
-    def test_token_expiry_is_not_extended_with_auto_refresh_deativated(self):
+    def test_token_expiry_is_not_extended_with_auto_refresh_deactivated(self):
         self.assertEqual(knox_settings.AUTO_REFRESH, False)
         self.assertEqual(knox_settings.TOKEN_TTL, timedelta(hours=10))
 
